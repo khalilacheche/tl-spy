@@ -1,42 +1,43 @@
-import { useEffect, useRef, useState } from "react";
-import type { HeatmapData } from "../types.ts";
+import { useEffect, useRef, useState, useCallback } from "react";
+import type { SimUpdate } from "../types.ts";
 
 const API_BASE = "/api";
 
-export function useHeatmap() {
-  const [data, setData] = useState<HeatmapData | null>(null);
+export function useSimulation() {
+  const [simData, setSimData] = useState<SimUpdate | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    fetch(`${API_BASE}/heatmap`)
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error);
-
+  const connect = useCallback(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const ws = new WebSocket(`${protocol}//${window.location.host}${API_BASE}/ws`);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
       try {
-        const parsed = JSON.parse(event.data) as HeatmapData;
-        setData(parsed);
+        setSimData(JSON.parse(event.data) as SimUpdate);
       } catch {
-        // ignore malformed messages
+        // ignore
       }
     };
 
     ws.onclose = () => {
-      setTimeout(() => {
-        // simple reconnect
-        window.location.reload();
-      }, 5000);
+      reconnectTimer.current = setTimeout(connect, 3000);
     };
-
-    return () => {
-      ws.close();
-    };
+    ws.onerror = () => ws.close();
   }, []);
 
-  return data;
+  useEffect(() => {
+    connect();
+    return () => {
+      clearTimeout(reconnectTimer.current);
+      wsRef.current?.close();
+    };
+  }, [connect]);
+
+  const setSpeed = useCallback((speed: number) => {
+    fetch(`${API_BASE}/speed?multiplier=${speed}`, { method: "POST" }).catch(console.error);
+  }, []);
+
+  return { simData, setSpeed };
 }

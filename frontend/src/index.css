@@ -116,3 +116,67 @@ body,
 .report-form button:hover {
   background: #2563eb;
 }
+
+.sim-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(26, 26, 46, 0.92);
+  color: #eee;
+  border-radius: 12px;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  backdrop-filter: blur(8px);
+  font-size: 0.85rem;
+}
+
+.sim-clock {
+  text-align: center;
+}
+
+.clock-time {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.clock-date {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speed-control label {
+  color: #888;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.speed-control input[type="range"] {
+  width: 100px;
+  accent-color: #3b82f6;
+}
+
+.speed-label {
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.agent-count {
+  color: #888;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}

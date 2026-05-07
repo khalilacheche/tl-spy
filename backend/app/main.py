@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 
 from contextlib import asynccontextmanager
 
@@ -12,45 +13,39 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.deps import get_network, get_tracker
 from app.api.routes import router, get_ws_clients
 from app.config import settings
-from app.scraper.telegram import TelegramScraper
+from app.scraper.telegram import TelegramBotScraper
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-scraper: TelegramScraper | None = None
+scraper: TelegramBotScraper | None = None
+
+TICK_INTERVAL = 0.3  # real seconds between ticks
 
 
-async def broadcast_heatmap() -> None:
-    """Periodically push heatmap updates to all WebSocket clients."""
+async def simulation_loop() -> None:
     tracker = get_tracker()
-    network = get_network()
+    last_time = time.time()
+
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(TICK_INTERVAL)
+        now = time.time()
+        real_dt = now - last_time
+        last_time = now
+
+        tracker.tick(real_dt)
+
         clients = get_ws_clients()
         if not clients:
             continue
 
-        probs = tracker.get_heatmap()
-        features = []
-        for stop_id, probability in probs.items():
-            if stop_id not in network.stops:
-                continue
-            stop = network.stops[stop_id]
-            features.append({
-                "type": "Feature",
-                "properties": {
-                    "id": stop.id,
-                    "name": stop.name,
-                    "probability": probability,
-                    "lines": stop.lines,
-                },
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [stop.lon, stop.lat],
-                },
-            })
-
-        payload = json.dumps({"type": "FeatureCollection", "features": features})
+        points = tracker.get_heatmap_points()
+        payload = json.dumps({
+            "points": [[lat, lon, w] for lat, lon, w in points],
+            "sim_time": tracker.sim_time,
+            "speed": tracker.speed_multiplier,
+            "agents": len(tracker.agents),
+        })
 
         dead = set()
         for ws in clients:
@@ -67,17 +62,17 @@ async def lifespan(app: FastAPI):
     network = get_network()
     tracker = get_tracker()
 
-    if settings.telegram_api_id and settings.telegram_channel:
-        scraper = TelegramScraper(tracker, network)
+    if settings.telegram_bot_token:
+        scraper = TelegramBotScraper(tracker, network)
         try:
             await scraper.start()
         except Exception as e:
-            logger.warning(f"Telegram scraper failed to start: {e}")
+            logger.warning(f"Telegram bot failed to start: {e}")
             logger.info("Running without live Telegram data — use POST /api/sightings to test")
     else:
-        logger.info("No Telegram credentials configured — use POST /api/sightings to test")
+        logger.info("No TELEGRAM_BOT_TOKEN configured — use POST /api/sightings to test")
 
-    broadcast_task = asyncio.create_task(broadcast_heatmap())
+    broadcast_task = asyncio.create_task(simulation_loop())
 
     yield
 

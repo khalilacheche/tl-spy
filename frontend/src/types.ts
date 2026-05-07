@@ -8,13 +8,20 @@ export interface StopFeature {
   };
   geometry: {
     type: "Point";
-    coordinates: [number, number]; // [lon, lat]
+    coordinates: [number, number];
   };
 }
 
 export interface HeatmapData {
   type: "FeatureCollection";
   features: StopFeature[];
+}
+
+export interface SimUpdate {
+  points: [number, number, number][]; // [lat, lon, weight][]
+  sim_time: number;
+  speed: number;
+  agents: number;
 }
 
 export interface Stop {
@@ -30,4 +37,12 @@ export interface SightingRecord {
   timestamp: number;
   direction: string | null;
   line: string | null;
+}
+
+export interface TransitLine {
+  name: string;
+  color: string;
+  weight: number;
+  opacity: number;
+  coords: [number, number][];
 }

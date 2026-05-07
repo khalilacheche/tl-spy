@@ -1,21 +1,22 @@
 import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import HeatmapLayer from "./components/HeatmapLayer.tsx";
-import StopMarkers from "./components/StopMarkers.tsx";
+import TransitLines from "./components/TransitLines.tsx";
+import SimControls from "./components/SimControls.tsx";
 import Sidebar from "./components/Sidebar.tsx";
-import { useHeatmap } from "./hooks/useHeatmap.ts";
+import { useSimulation } from "./hooks/useHeatmap.ts";
 
 const LAUSANNE_CENTER: [number, number] = [46.5197, 6.6323];
 
 export default function App() {
-  const heatmapData = useHeatmap();
+  const { simData, setSpeed } = useSimulation();
 
   return (
     <div className="app">
       <header className="header">
         <h1>TL Spy</h1>
-        <span className={`status ${heatmapData ? "live" : ""}`}>
-          {heatmapData ? "Live" : "Connecting..."}
+        <span className={`status ${simData ? "live" : ""}`}>
+          {simData ? "Live" : "Connecting..."}
         </span>
       </header>
       <div className="map-container">
@@ -25,12 +26,20 @@ export default function App() {
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-          {heatmapData && <HeatmapLayer data={heatmapData} />}
-          {heatmapData && <StopMarkers data={heatmapData} />}
+          <TransitLines />
+          {simData && simData.points.length > 0 && <HeatmapLayer data={simData} />}
         </MapContainer>
+        {simData && (
+          <SimControls
+            simTime={simData.sim_time}
+            speed={simData.speed}
+            agents={simData.agents}
+            onSpeedChange={setSpeed}
+          />
+        )}
         <Sidebar />
       </div>
     </div>

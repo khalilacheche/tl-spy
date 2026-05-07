@@ -9,14 +9,13 @@ router = APIRouter()
 
 @router.get("/heatmap")
 async def heatmap() -> dict:
-    """Return current probability distribution across all stops."""
     tracker = get_tracker()
     network = get_network()
     probs = tracker.get_heatmap()
 
     features = []
     for stop_id, probability in probs.items():
-        if stop_id not in network.stops:
+        if stop_id not in network.stops or probability < 1e-6:
             continue
         stop = network.stops[stop_id]
         features.append({
@@ -72,20 +71,69 @@ async def sightings() -> dict:
 
 
 @router.post("/sightings")
-async def add_sighting(stop_id: str, line: str | None = None, direction: str | None = None) -> dict:
-    """Manually report a sighting (for testing or manual input)."""
+async def add_sighting(stop_id: str, line: str | None = None, direction: str | None = None,
+                       state: str = "at_stop", count: int = 1) -> dict:
     import time
-    from app.model.markov import Sighting
+    from app.model.markov import Sighting, SightingState
 
+    state_map = {s.value: s for s in SightingState}
     sighting = Sighting(
         stop_id=stop_id,
         timestamp=time.time(),
         direction=direction,
         line=line,
+        state=state_map.get(state, SightingState.AT_STOP),
+        count=max(1, min(count, 10)),
     )
     tracker = get_tracker()
     tracker.report_sighting(sighting)
     return {"status": "ok", "sighting": {"stop_id": stop_id, "line": line, "direction": direction}}
+
+
+@router.post("/speed")
+async def set_speed(multiplier: float) -> dict:
+    tracker = get_tracker()
+    tracker.speed_multiplier = max(0.5, min(multiplier, 100.0))
+    return {"speed": tracker.speed_multiplier}
+
+
+@router.get("/speed")
+async def get_speed() -> dict:
+    tracker = get_tracker()
+    return {"speed": tracker.speed_multiplier}
+
+
+LINE_COLORS: dict[str, str] = {
+    "M1": "#1e88e5",
+    "M2": "#e53935",
+    "LEB": "#43a047",
+}
+
+
+@router.get("/lines")
+async def lines() -> dict:
+    """Return polyline coordinates for each transit line."""
+    network = get_network()
+    result = []
+    for line_name, stop_ids in network.line_routes.items():
+        coords = []
+        for sid in stop_ids:
+            if sid in network.stops:
+                s = network.stops[sid]
+                coords.append([s.lat, s.lon])
+        if len(coords) < 2:
+            continue
+
+        color = LINE_COLORS.get(line_name, "#666666")
+        is_metro = line_name in ("M1", "M2")
+        result.append({
+            "name": line_name,
+            "color": color,
+            "weight": 4 if is_metro else 2,
+            "opacity": 0.8 if is_metro else 0.4,
+            "coords": coords,
+        })
+    return {"lines": result}
 
 
 _ws_clients: set[WebSocket] = set()

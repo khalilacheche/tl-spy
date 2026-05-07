@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    telegram_api_id: int = 0
-    telegram_api_hash: str = ""
-    telegram_channel: str = ""
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+    anthropic_api_key: str = ""
     host: str = "0.0.0.0"
     port: int = 8000
 
