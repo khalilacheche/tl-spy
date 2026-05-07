@@ -28,8 +28,8 @@ class TransportNetwork:
     def neighbors(self, stop_id: str) -> list[tuple[str, str]]:
         return self._adjacency.get(stop_id, [])
 
-    def get_route_ahead(self, line: str, current_stop: str, direction_stop: str | None
-                        ) -> list[str] | None:
+    def get_route_ahead(self, line: str, current_stop: str, direction_stop: str | None,
+                        random_if_no_dir: bool = False) -> list[str] | None:
         """Get the ordered list of stops ahead on a line, given current position and direction."""
         route = self.line_routes.get(line)
         if not route:
@@ -39,18 +39,24 @@ class TransportNetwork:
             return None
 
         idx = route.index(current_stop)
+        forward = route[idx + 1:]
+        backward = list(reversed(route[:idx]))
 
         if direction_stop and direction_stop in route:
             dir_idx = route.index(direction_stop)
             if dir_idx > idx:
-                return route[idx + 1:]
+                return forward
             else:
-                return list(reversed(route[:idx]))
-        else:
-            # No direction: return forward (toward end of line)
-            forward = route[idx + 1:]
-            backward = list(reversed(route[:idx]))
-            return forward if len(forward) >= len(backward) else backward
+                return backward
+
+        if random_if_no_dir:
+            import random
+            if forward and backward:
+                return random.choice([forward, backward])
+            return forward or backward
+
+        # Default: return whichever side has stops
+        return forward or backward
 
     def lines_at_stop(self, stop_id: str) -> list[str]:
         """Get all lines that pass through a stop."""

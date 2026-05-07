@@ -20,26 +20,26 @@ export default function HeatmapLayer({ data }: Props) {
 
     if (!data.points.length) return;
 
-    const maxW = Math.max(...data.points.map((p) => p[2]), 0.001);
-
     const heatPoints: L.HeatLatLngTuple[] = data.points.map(([lat, lon, w]) => [
       lat,
       lon,
-      w / maxW,
+      w,
     ]);
 
     const heatFn = (L as unknown as { heatLayer: (pts: L.HeatLatLngTuple[], opts?: object) => L.Layer }).heatLayer;
     const heat = heatFn(heatPoints, {
-      radius: 30,
-      blur: 20,
+      radius: 32,
+      blur: 18,
       maxZoom: 17,
-      max: 1.0,
+      max: 0.04,
+      minOpacity: 0.15,
       gradient: {
-        0.0: "rgba(0, 0, 128, 0)",
-        0.1: "#0000ff",
-        0.3: "#00ccff",
-        0.5: "#00ff00",
-        0.7: "#ffff00",
+        0.0: "rgba(0, 0, 255, 0)",
+        0.05: "rgba(0, 80, 255, 0.4)",
+        0.2: "#00ccff",
+        0.4: "#00ff00",
+        0.6: "#ffff00",
+        0.8: "#ff6600",
         1.0: "#ff0000",
       },
     });

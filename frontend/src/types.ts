@@ -17,11 +17,19 @@ export interface HeatmapData {
   features: StopFeature[];
 }
 
+export interface LineRisk {
+  line: string;
+  risk: number;
+  agents: number;
+}
+
 export interface SimUpdate {
   points: [number, number, number][]; // [lat, lon, weight][]
   sim_time: number;
   speed: number;
   agents: number;
+  groups: number;
+  line_risks: LineRisk[];
 }
 
 export interface Stop {

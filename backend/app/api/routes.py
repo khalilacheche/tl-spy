@@ -90,10 +90,16 @@ async def add_sighting(stop_id: str, line: str | None = None, direction: str | N
     return {"status": "ok", "sighting": {"stop_id": stop_id, "line": line, "direction": direction}}
 
 
+@router.get("/line-risks")
+async def line_risks() -> dict:
+    tracker = get_tracker()
+    return {"lines": tracker.get_line_risks()}
+
+
 @router.post("/speed")
 async def set_speed(multiplier: float) -> dict:
     tracker = get_tracker()
-    tracker.speed_multiplier = max(0.5, min(multiplier, 100.0))
+    tracker.speed_multiplier = max(0.5, min(multiplier, 500.0))
     return {"speed": tracker.speed_multiplier}
 
 

@@ -37,10 +37,11 @@ export default function App() {
             simTime={simData.sim_time}
             speed={simData.speed}
             agents={simData.agents}
+            groups={simData.groups}
             onSpeedChange={setSpeed}
           />
         )}
-        <Sidebar />
+        <Sidebar lineRisks={simData?.line_risks ?? []} />
       </div>
     </div>
   );

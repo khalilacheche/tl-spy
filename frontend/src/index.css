@@ -180,3 +180,75 @@ body,
   font-size: 0.75rem;
   white-space: nowrap;
 }
+
+.line-ranking {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.line-filter {
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #2a2a3e;
+  color: #eee;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.line-filter:focus {
+  border-color: #3b82f6;
+}
+
+.line-filter::placeholder {
+  color: #666;
+}
+
+.risk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.risk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.8rem;
+}
+
+.risk-line-name {
+  min-width: 72px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.risk-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.risk-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: right;
+  letter-spacing: 0.05em;
+}

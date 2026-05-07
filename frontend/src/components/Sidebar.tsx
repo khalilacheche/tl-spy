@@ -1,10 +1,29 @@
 import { useState, useEffect } from "react";
-import type { SightingRecord, Stop } from "../types.ts";
+import type { SightingRecord, Stop, LineRisk } from "../types.ts";
 
-export default function Sidebar() {
+interface Props {
+  lineRisks: LineRisk[];
+}
+
+function riskColor(risk: number): string {
+  if (risk >= 0.7) return "#ff4444";
+  if (risk >= 0.4) return "#ffaa00";
+  if (risk >= 0.15) return "#ffdd44";
+  return "#66bb6a";
+}
+
+function riskLabel(risk: number): string {
+  if (risk >= 0.7) return "HIGH";
+  if (risk >= 0.4) return "MED";
+  if (risk >= 0.15) return "LOW";
+  return "OK";
+}
+
+export default function Sidebar({ lineRisks }: Props) {
   const [stops, setStops] = useState<Stop[]>([]);
   const [sightings, setSightings] = useState<SightingRecord[]>([]);
   const [selectedStop, setSelectedStop] = useState("");
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     fetch("/api/stops")
@@ -45,8 +64,47 @@ export default function Sidebar() {
     return d.toLocaleTimeString();
   };
 
+  const filteredRisks = lineRisks.filter((lr) =>
+    lr.line.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
     <div className="sidebar">
+      {lineRisks.length > 0 && (
+        <div className="line-ranking">
+          <h2>Line Risk</h2>
+          <input
+            type="text"
+            className="line-filter"
+            placeholder="Filter lines..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <div className="risk-list">
+            {filteredRisks.map((lr) => (
+              <div key={lr.line} className="risk-row">
+                <span className="risk-line-name">{lr.line}</span>
+                <div className="risk-bar-bg">
+                  <div
+                    className="risk-bar-fill"
+                    style={{
+                      width: `${Math.round(lr.risk * 100)}%`,
+                      background: riskColor(lr.risk),
+                    }}
+                  />
+                </div>
+                <span className="risk-badge" style={{ color: riskColor(lr.risk) }}>
+                  {riskLabel(lr.risk)}
+                </span>
+              </div>
+            ))}
+            {filteredRisks.length === 0 && (
+              <p style={{ color: "#666", fontSize: "0.8rem" }}>No matching lines</p>
+            )}
+          </div>
+        </div>
+      )}
+
       <h2>Recent Sightings</h2>
       {sightings.length === 0 && (
         <p style={{ color: "#888", fontSize: "0.85rem" }}>

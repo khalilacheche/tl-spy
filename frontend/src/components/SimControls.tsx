@@ -4,12 +4,13 @@ interface Props {
   simTime: number;
   speed: number;
   agents: number;
+  groups: number;
   onSpeedChange: (speed: number) => void;
 }
 
-const SPEED_STEPS = [1, 2, 5, 10, 20, 50];
+const SPEED_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500];
 
-export default function SimControls({ simTime, speed, agents, onSpeedChange }: Props) {
+export default function SimControls({ simTime, speed, agents, groups, onSpeedChange }: Props) {
   const [localSpeed, setLocalSpeed] = useState(speed);
 
   const clock = new Date(simTime * 1000);
@@ -51,7 +52,9 @@ export default function SimControls({ simTime, speed, agents, onSpeedChange }: P
         />
         <span className="speed-label">{localSpeed}x</span>
       </div>
-      <div className="agent-count">{agents} agents</div>
+      <div className="agent-count">
+        {agents} agents{groups > 1 ? ` · ${groups} groups` : groups === 1 ? " · 1 group" : ""}
+      </div>
     </div>
   );
 }

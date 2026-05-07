@@ -40,11 +40,14 @@ async def simulation_loop() -> None:
             continue
 
         points = tracker.get_heatmap_points()
+        line_risks = tracker.get_line_risks()
         payload = json.dumps({
             "points": [[lat, lon, w] for lat, lon, w in points],
             "sim_time": tracker.sim_time,
             "speed": tracker.speed_multiplier,
-            "agents": len(tracker.agents),
+            "agents": tracker.agent_count,
+            "groups": len(tracker.groups),
+            "line_risks": line_risks,
         })
 
         dead = set()
