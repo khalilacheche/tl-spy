@@ -1,0 +1,29 @@
+[project]
+name = "tl-spy-backend"
+version = "0.1.0"
+description = "Track TL ticket controllers in Lausanne using Telegram data and Markov chains"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "telethon>=1.36.0",
+    "numpy>=1.26.0",
+    "scipy>=1.14.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "python-dotenv>=1.0.0",
+    "websockets>=13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
